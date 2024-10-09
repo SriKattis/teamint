@@ -4,8 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login with Azure AD and View Teams</title>
+    <!-- Include MSAL.js for authentication -->
     <script src="https://alcdn.msauth.net/browser/2.17.0/js/msal-browser.min.js"></script>
-    <script src="https://unpkg.com/adaptivecards@latest"></script>
+    <!-- Include Adaptive Cards library -->
+    <script src="https://unpkg.com/adaptivecards@latest/dist/adaptivecards.min.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -122,9 +124,10 @@
             teamsDisplay.innerHTML = ''; // Clear previous content
             if (teams.length > 0) {
                 teams.forEach(team => {
-                    let card = new AdaptiveCards.AdaptiveCard();
+                    let card = new AdaptiveCards.AdaptiveCard(); // Create an Adaptive Card instance
                     card.parse({
                         "type": "AdaptiveCard",
+                        "version": "1.3",
                         "body": [
                             {
                                 "type": "TextBlock",
@@ -147,7 +150,7 @@
                         ]
                     });
                     let cardContainer = document.createElement('div');
-                    card.render(cardContainer);
+                    card.render(cardContainer); // Render the card in the container
                     teamsDisplay.appendChild(cardContainer);
                 });
             } else {
