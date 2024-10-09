@@ -1,15 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login with Azure AD and View Teams</title>
+    <script src="https://alcdn.msauth.net/browser/2.17.0/js/msal-browser.min.js"></script>
+    <script src="https://unpkg.com/adaptivecards@latest"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f4f4;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .container {
+            width: 80%;
+            max-width: 600px;
+            background: white;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        button {
+            background-color: #0078D4;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin-top: 10px;
+            cursor: pointer;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #0056a3;
+        }
+        #teamsDisplay {
+            margin-top: 20px;
+            width: 100%;
+            display: none;
+        }
+    </style>
+</head>
 <body>
-    <div class="login-container">
+    <div class="container">
         <h2>Login with Azure AD</h2>
         <button id="login">Login</button>
         <button id="showTeams" style="display:none;">Show Teams</button>
-    </div>
-    <div id="teamsDisplay" style="padding: 20px; display: none;">
-        <h3>Teams and Channels:</h3>
-        <ul id="teamsList"></ul>
+        <div id="teamsDisplay"></div>
     </div>
 
-    <script src="https://alcdn.msauth.net/browser/2.17.0/js/msal-browser.min.js"></script>
     <script>
         const msalConfig = {
             auth: {
@@ -50,21 +95,52 @@
                 })
                 .then(response => response.json())
                 .then(data => {
-                    const teamsList = document.getElementById('teamsList');
-                    teamsList.innerHTML = ''; // Clear previous entries
-                    data.value.forEach(team => {
-                        let li = document.createElement('li');
-                        li.textContent = team.displayName;
-                        teamsList.appendChild(li);
-                    });
-                    document.getElementById('teamsDisplay').style.display = 'block';
+                    displayTeamsAsCards(data.value);
                 })
                 .catch(error => {
                     console.error('Error fetching teams:', error);
+                    document.getElementById('teamsDisplay').textContent = 'Error fetching teams. See console for details.';
                 });
             }).catch(error => {
-                console.log('Token acquisition failed:', error);
+                console.error('Token acquisition failed:', error);
+                document.getElementById('teamsDisplay').textContent = 'Token acquisition failed. See console for details.';
             });
+        }
+
+        function displayTeamsAsCards(teams) {
+            const teamsDisplay = document.getElementById('teamsDisplay');
+            teamsDisplay.innerHTML = ''; // Clear previous content
+            teams.forEach(team => {
+                let card = new AdaptiveCards.AdaptiveCard();
+                card.parse({
+                    "type": "AdaptiveCard",
+                    "body": [
+                        {
+                            "type": "TextBlock",
+                            "size": "Medium",
+                            "weight": "Bolder",
+                            "text": team.displayName
+                        },
+                        {
+                            "type": "TextBlock",
+                            "text": `Team ID: ${team.id}`,
+                            "wrap": true
+                        }
+                    ],
+                    "actions": [
+                        {
+                            "type": "Action.OpenUrl",
+                            "title": "View Team",
+                            "url": `https://teams.microsoft.com/l/team/${team.id}/conversations`
+                        }
+                    ]
+                });
+                let cardContainer = document.createElement('div');
+                card.render(cardContainer);
+                teamsDisplay.appendChild(cardContainer);
+            });
+            teamsDisplay.style.display = 'block';
         }
     </script>
 </body>
+</html>
