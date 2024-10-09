@@ -244,6 +244,20 @@
             }
             document.getElementById('messages').style.display = 'block';
         }
-    </script>
-</body>
-</html>
+
+        document.getElementById('sendMessage').addEventListener('click', async function() {
+            const messageContent = document.getElementById('messageInput').value;
+            if (!messageContent || !selectedTeamId || !selectedChannelId) {
+                alert('Please enter a message and select a team/channel.');
+                return;
+            }
+
+            await sendMessage(selectedTeamId, selectedChannelId, messageContent);
+        });
+
+        async function sendMessage(teamId, channelId, messageContent) {
+            const account = msalInstance.getActiveAccount();
+            try {
+                console.log("Attempting to acquire token silently for sending message...");
+                const tokenResponse = await msalInstance.acquireTokenSilent({ ...loginRequest, account });
+               
