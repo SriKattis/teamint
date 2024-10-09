@@ -120,35 +120,39 @@
         function displayTeamsAsCards(teams) {
             const teamsDisplay = document.getElementById('teamsDisplay');
             teamsDisplay.innerHTML = ''; // Clear previous content
-            teams.forEach(team => {
-                let card = new AdaptiveCards.AdaptiveCard();
-                card.parse({
-                    "type": "AdaptiveCard",
-                    "body": [
-                        {
-                            "type": "TextBlock",
-                            "size": "Medium",
-                            "weight": "Bolder",
-                            "text": team.displayName
-                        },
-                        {
-                            "type": "TextBlock",
-                            "text": `Team ID: ${team.id}`,
-                            "wrap": true
-                        }
-                    ],
-                    "actions": [
-                        {
-                            "type": "Action.OpenUrl",
-                            "title": "View Team",
-                            "url": `https://teams.microsoft.com/l/team/${team.id}/conversations`
-                        }
-                    ]
+            if (teams.length > 0) {
+                teams.forEach(team => {
+                    let card = new AdaptiveCards.AdaptiveCard();
+                    card.parse({
+                        "type": "AdaptiveCard",
+                        "body": [
+                            {
+                                "type": "TextBlock",
+                                "size": "Medium",
+                                "weight": "Bolder",
+                                "text": team.displayName
+                            },
+                            {
+                                "type": "TextBlock",
+                                "text": `Team ID: ${team.id}`,
+                                "wrap": true
+                            }
+                        ],
+                        "actions": [
+                            {
+                                "type": "Action.OpenUrl",
+                                "title": "View Team",
+                                "url": `https://teams.microsoft.com/l/team/${team.id}/conversations`
+                            }
+                        ]
+                    });
+                    let cardContainer = document.createElement('div');
+                    card.render(cardContainer);
+                    teamsDisplay.appendChild(cardContainer);
                 });
-                let cardContainer = document.createElement('div');
-                card.render(cardContainer);
-                teamsDisplay.appendChild(cardContainer);
-            });
+            } else {
+                teamsDisplay.innerHTML = '<p>No teams found or you do not have permission to view them.</p>';
+            }
             teamsDisplay.style.display = 'block';
         }
     </script>
