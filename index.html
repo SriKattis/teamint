@@ -73,6 +73,7 @@
             msalInstance.loginPopup(loginRequest)
                 .then(loginResponse => {
                     console.log('Logged in:', loginResponse);
+                    msalInstance.setActiveAccount(loginResponse.account);
                     alert('Login successful!');
                     document.getElementById('showTeams').style.display = 'block';
                 })
@@ -87,7 +88,16 @@
         });
 
         function fetchTeamsChannels() {
-            msalInstance.acquireTokenSilent(loginRequest).then(tokenResponse => {
+            const account = msalInstance.getActiveAccount();
+            if (!account) {
+                alert('No active account found. Please log in.');
+                return;
+            }
+
+            msalInstance.acquireTokenSilent({
+                ...loginRequest,
+                account: account
+            }).then(tokenResponse => {
                 fetch('https://graph.microsoft.com/v1.0/me/joinedTeams', {
                     headers: {
                         'Authorization': 'Bearer ' + tokenResponse.accessToken
