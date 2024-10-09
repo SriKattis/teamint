@@ -260,4 +260,33 @@
             try {
                 console.log("Attempting to acquire token silently for sending message...");
                 const tokenResponse = await msalInstance.acquireTokenSilent({ ...loginRequest, account });
-               
+                console.log("Token acquired successfully for sending message:", tokenResponse);
+
+                const response = await fetch(`https://graph.microsoft.com/v1.0/teams/${teamId}/channels/${channelId}/messages`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': 'Bearer ' + tokenResponse.accessToken,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        body: {
+                            content: messageContent
+                        }
+                    })
+                });
+                console.log("Message send response:", response);
+
+                if (!response.ok) {
+                    throw new Error(`Error sending message: ${response.statusText}`);
+                }
+
+                alert('Message sent successfully!');
+                fetchMessages(teamId, channelId); // Refresh messages after sending
+            } catch (error) {
+                console.error('Error sending message:', error);
+                alert('Error sending message. Please check the console for more details.');
+            }
+        }
+    </script>
+</body>
+</html>
