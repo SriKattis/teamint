@@ -251,4 +251,119 @@
             }
         });
 
-        document.getElement
+        document.getElementById('showTeams').addEventListener('click', async function() {
+            console.log("Fetching teams...");
+            await fetchTeams();
+        });
+
+        document.getElementById('showAgenda').addEventListener('click', function() {
+            document.getElementById('agendaContainer').style.display = 'block';
+        });
+
+        async function getToken() {
+            const account = msalInstance.getActiveAccount();
+            if (!account) {
+                throw new Error('No active account found. Please log in.');
+            }
+            try {
+                return await msalInstance.acquireTokenSilent({ ...loginRequest, account });
+            } catch (error) {
+                console.warn("Silent token acquisition failed, attempting popup...");
+                return await msalInstance.acquireTokenPopup(loginRequest);
+            }
+        }
+
+        async function fetchTeams() {
+            try {
+                const tokenResponse = await getToken();
+                console.log("Token acquired successfully for teams:", tokenResponse);
+                const response = await fetch('https://graph.microsoft.com/v1.0/me/joinedTeams', {
+                    headers: {
+                        'Authorization': 'Bearer ' + tokenResponse.accessToken
+                    }
+                });
+                console.log("Teams fetch response:", response);
+
+                if (!response.ok) {
+                    throw new Error(`Error fetching teams: ${response.statusText}`);
+                }
+
+                const data = await response.json();
+                console.log("Teams data fetched:", data);
+                displayTeams(data.value);
+            } catch (error) {
+                console.error('Error fetching teams:', error);
+                alert('Error fetching teams. Please check the console for more details.');
+            }
+        }
+
+        function displayTeams(teams) {
+            console.log("Displaying teams...");
+            const teamsList = document.getElementById('teamsList');
+            teamsList.innerHTML = '';
+            if (teams.length > 0) {
+                teams.forEach(team => {
+                    console.log("Team found:", team.displayName);
+                    const li = document.createElement('li');
+                    li.textContent = team.displayName;
+                    teamsList.appendChild(li);
+                });
+                document.getElementById('teamsContainer').style.display = 'block';
+            } else {
+                console.warn("No teams found or insufficient permissions.");
+                teamsList.innerHTML = '<p>No teams found or you do not have permission to view them.</p>';
+            }
+        }
+    </script>
+    <script>
+        document.querySelector('mgt-agenda').templateContext = {
+            dayFromDateTime: dateTimeString => {
+                let date = new Date(dateTimeString);
+                date.setMinutes(date.getMinutes() - date.getTimezoneOffset());
+                let monthNames = [
+                    'January',
+                    'February',
+                    'March',
+                    'April',
+                    'May',
+                    'June',
+                    'July',
+                    'August',
+                    'September',
+                    'October',
+                    'November',
+                    'December'
+                ];
+
+                let monthIndex = date.getMonth();
+                let day = date.getDate();
+                let year = date.getFullYear();
+
+                return monthNames[monthIndex] + ' ' + day + ' ' + year;
+            },
+
+            timeRangeFromEvent: event => {
+                if(event.isAllDay) {
+                    return 'ALL DAY';
+                }
+
+                let prettyPrintTimeFromDateTime = date => {
+                    date.setMinutes(date.getMinutes() - date.getTimezoneOffset());
+                    let hours = date.getHours();
+                    let minutes = date.getMinutes();
+                    let ampm = hours >= 12 ? 'PM' : 'AM';
+                    hours = hours % 12;
+                    hours = hours ? hours : 12;
+                    let minutesStr = minutes < 10 ? '0' + minutes : minutes;
+                    return hours + ':' + minutesStr + ' ' + ampm;
+                };
+
+                let start = prettyPrintTimeFromDateTime(new Date(event.start.dateTime));
+                let end = prettyPrintTimeFromDateTime(new Date(event.end.dateTime));
+
+                return start + ' - ' + end;
+            }
+        };
+    </script>
+</body>
+</html>
