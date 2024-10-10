@@ -6,6 +6,7 @@
     <title>Login with Azure AD and View Teams</title>
     <!-- Include MSAL.js for authentication -->
     <script src="https://alcdn.msauth.net/browser/2.17.0/js/msal-browser.min.js"></script>
+    <script src="https://unpkg.com/@microsoft/mgt/dist/bundle/mgt-loader.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -17,7 +18,7 @@
             margin: 0;
             padding-top: 20px;
         }
-      .container {
+     .container {
             width: 80%;
             max-width: 600px;
             background: white;
@@ -26,22 +27,22 @@
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
             margin-bottom: 20px;
         }
-      .card-container {
+     .card-container {
             margin-top: 20px;
         }
-      .card {
+     .card {
             margin-bottom: 20px;
             padding: 20px;
             border: 1px solid #ddd;
             border-radius: 5px;
             background: #f9f9f9;
         }
-      .message {
+     .message {
             font-size: 16px;
             font-weight: bold;
             margin-bottom: 10px;
         }
-      .username {
+     .username {
             font-size: 14px;
             color: #666;
         }
@@ -88,6 +89,10 @@
             <div id="card-container" class="card-container"></div>
             <textarea id="messageInput" placeholder="Type your message here..." rows="4" style="width: 100%; margin-top: 10px;"></textarea>
             <button id="sendMessage">Send Message</button>
+        </div>
+        <div id="agenda" style="display:none;">
+            <h3>Agenda:</h3>
+            <mgt-agenda></mgt-agenda>
         </div>
     </div>
 
@@ -204,9 +209,16 @@
                 console.log("Channels data fetched:", data);
 
                 if (data.value.length > 0) {
-                    selectedChannelId = data.value[0].id; // Automatically select the first channel
-                    console.log("Selected channel ID:", selectedChannelId);
-                    fetchMessages(selectedTeamId, selectedChannelId);
+                    const channelPicker = document.createElement('mgt-teams-channel-picker');
+                    channelPicker.teamId = teamId;
+                    channelPicker.channels = data.value;
+                    channelPicker.addEventListener('channelChanged', (e) => {
+                        selectedChannelId = e.detail.channelId;
+                        console.log("Selected channel ID:", selectedChannelId);
+                        fetchMessages(selectedTeamId, selectedChannelId);
+                        document.getElementById('agenda').style.display = 'block';
+                    });
+                    document.getElementById('messages').appendChild(channelPicker);
                 } else {
                     alert('No channels found in this team.');
                 }
