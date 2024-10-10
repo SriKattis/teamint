@@ -88,7 +88,8 @@
 
     <!-- Add the Agenda component -->
     <div id="agendaContainer" style="margin-top: 20px;">
-        <mgt-agenda view="month"></mgt-agenda>
+        <h3>Your Agenda:</h3>
+        <mgt-agenda group-by-day></mgt-agenda>
     </div>
 
     <script>
@@ -116,7 +117,6 @@
                 msalInstance.setActiveAccount(loginResponse.account);
                 alert('Login successful!');
                 document.getElementById('showTeams').style.display = 'block';
-                await fetchEvents(); // Fetch user's events after a successful login
             } catch (error) {
                 console.error('Login failed:', error);
                 alert('Login failed. Please check the console for more details.');
@@ -216,131 +216,3 @@
             } catch (error) {
                 console.error('Error fetching channels:', error);
                 alert('Error fetching channels. Please check the console for more details.');
-            }
-        }
-
-        async function fetchMessages(teamId, channelId) {
-            try {
-                const tokenResponse = await getToken();
-                console.log("Token acquired successfully for messages:", tokenResponse);
-                const response = await fetch(`https://graph.microsoft.com/v1.0/teams/${teamId}/channels/${channelId}/messages`, {
-                    headers: {
-                        'Authorization': 'Bearer ' + tokenResponse.accessToken
-                    }
-                });
-                console.log("Messages fetch response:", response);
-
-                if (!response.ok) {
-                    throw new Error(`Error fetching messages: ${response.statusText}`);
-                }
-
-                const data = await response.json();
-                console.log("Messages data fetched:", data);
-                displayMessages(data.value);
-            } catch (error) {
-                console.error('Error fetching messages:', error);
-                alert('Error fetching messages. Please check the console for more details.');
-            }
-        }
-
-        function displayMessages(messages) {
-            console.log("Displaying messages...");
-            const messagesList = document.getElementById('messagesList');
-            messagesList.innerHTML = '';
-            if (messages.length > 0) {
-                messages.forEach(message => {
-                    console.log("Message:", message.body.content);
-                    const li = document.createElement('li');
-                    li.textContent = message.body.content;
-                    messagesList.appendChild(li);
-                });
-            } else {
-                console.warn("No messages found in channel.");
-                messagesList.innerHTML = '<p>No messages found.</p>';
-            }
-            document.getElementById('messages').style.display = 'block';
-        }
-
-        document.getElementById('sendMessage').addEventListener('click', async function() {
-            const messageContent = document.getElementById('messageInput').value;
-            if (!messageContent || !selectedTeamId || !selectedChannelId) {
-                alert('Please enter a message and select a team/channel.');
-                return;
-            }
-
-            await sendMessage(selectedTeamId, selectedChannelId, messageContent);
-        });
-
-        async function sendMessage(teamId, channelId, messageContent) {
-            try {
-                const tokenResponse = await getToken();
-                console.log("Token acquired successfully for sending message:", tokenResponse);
-                const response = await fetch(`https://graph.microsoft.com/v1.0/teams/${teamId}/channels/${channelId}/messages`, {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': 'Bearer ' + tokenResponse.accessToken,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        body: {
-                            content: messageContent
-                        }
-                    })
-                });
-                console.log("Message send response:", response);
-
-                if (!response.ok) {
-                    throw new Error(`Error sending message: ${response.statusText}`);
-                }
-
-                alert('Message sent successfully!');
-                fetchMessages(teamId, channelId); // Refresh messages after sending
-            } catch (error) {
-                console.error('Error sending message:', error);
-                alert('Error sending message. Please check the console for more details.');
-            }
-        }
-
-        async function fetchEvents() {
-            try {
-                const tokenResponse = await getToken();
-                console.log("Token acquired successfully for events:", tokenResponse);
-                const response = await fetch('https://graph.microsoft.com/v1.0/me/events', {
-                    headers: {
-                        'Authorization': 'Bearer ' + tokenResponse.accessToken
-                    }
-                });
-                console.log("Events fetch response:", response);
-
-                if (!response.ok) {
-                    throw new Error(`Error fetching events: ${response.statusText}`);
-                }
-
-                const data = await response.json();
-                console.log("Events data fetched:", data);
-                displayEvents(data.value);
-            } catch (error) {
-                console.error('Error fetching events:', error);
-                alert('Error fetching events. Please check the console for more details.');
-            }
-        }
-
-        function displayEvents(events) {
-            console.log("Displaying events...");
-            const agenda = document.querySelector('mgt-agenda');
-            if (events.length > 0) {
-                agenda.items = events.map(event => ({
-                    title: event.subject,
-                    start: new Date(event.start.dateTime),
-                    end: new Date(event.end.dateTime),
-                    location: event.location.displayName || '',
-                    description: event.body.content || ''
-                }));
-            } else {
-                console.warn("No events found or insufficient permissions.");
-                agenda.items = [];
-            }
-        }
-    </script>
-</body>
-</html>
