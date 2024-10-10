@@ -6,6 +6,8 @@
     <title>Login with Azure AD and View Teams</title>
     <!-- Include MSAL.js for authentication -->
     <script src="https://alcdn.msauth.net/browser/2.17.0/js/msal-browser.min.js"></script>
+    <!-- Include Adaptive Cards library -->
+    <script src="https://unpkg.com/adaptivecards/dist/adaptivecards.min.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -17,7 +19,7 @@
             margin: 0;
             padding-top: 20px;
         }
-        .container {
+       .container {
             width: 80%;
             max-width: 600px;
             background: white;
@@ -26,7 +28,26 @@
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
             margin-bottom: 20px;
         }
-        button {
+       .card-container {
+            margin-top: 20px;
+        }
+       .card {
+            margin-bottom: 20px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background: #f9f9f9;
+        }
+       .message {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+       .username {
+            font-size: 14px;
+            color: #666;
+        }
+        #login {
             background-color: #0078D4;
             color: white;
             border: none;
@@ -36,25 +57,22 @@
             border-radius: 5px;
             font-size: 16px;
         }
-        button:hover {
+        #login:hover {
             background-color: #0056a3;
         }
-        ul {
-            list-style: none;
-            padding: 0;
-        }
-        li {
+        #showTeams {
+            display: none;
+            margin-top: 10px;
+            padding: 10px 20px;
+            background-color: #0078D4;
+            color: white;
+            border: none;
             cursor: pointer;
-            padding: 10px;
-            margin: 5px 0;
-            background: #f0f0f0;
             border-radius: 5px;
+            font-size: 16px;
         }
-        li:hover {
-            background: #d0d0d0;
-        }
-        #messages {
-            margin-top: 20px;
+        #showTeams:hover {
+            background-color: #0056a3;
         }
     </style>
 </head>
@@ -69,7 +87,7 @@
         </div>
         <div id="messages" style="display:none;">
             <h3>Messages in Channel:</h3>
-            <ul id="messagesList"></ul>
+            <div id="card-container" class="card-container"></div>
             <textarea id="messageInput" placeholder="Type your message here..." rows="4" style="width: 100%; margin-top: 10px;"></textarea>
             <button id="sendMessage">Send Message</button>
         </div>
@@ -120,12 +138,12 @@
 
             try {
                 console.log("Attempting to acquire token silently...");
-                const tokenResponse = await msalInstance.acquireTokenSilent({ ...loginRequest, account });
+                const tokenResponse = await msalInstance.acquireTokenSilent({...loginRequest, account });
                 console.log("Token acquired successfully:", tokenResponse);
                 
                 const response = await fetch('https://graph.microsoft.com/v1.0/me/joinedTeams', {
                     headers: {
-                        'Authorization': 'Bearer ' + tokenResponse.accessToken
+                        'Authorization': 'Bearer'+ tokenResponse.accessToken
                     }
                 });
                 console.log("Teams fetch response:", response);
@@ -170,12 +188,12 @@
             const account = msalInstance.getActiveAccount();
             try {
                 console.log("Attempting to acquire token silently for channels...");
-                const tokenResponse = await msalInstance.acquireTokenSilent({ ...loginRequest, account });
+                const tokenResponse = await msalInstance.acquireTokenSilent({...loginRequest, account });
                 console.log("Token acquired successfully for channels:", tokenResponse);
 
                 const response = await fetch(`https://graph.microsoft.com/v1.0/teams/${teamId}/channels`, {
                     headers: {
-                        'Authorization': 'Bearer ' + tokenResponse.accessToken
+                        'Authorization': 'Bearer'+ tokenResponse.accessToken
                     }
                 });
                 console.log("Channels fetch response:", response);
@@ -204,12 +222,12 @@
             const account = msalInstance.getActiveAccount();
             try {
                 console.log("Attempting to acquire token silently for messages...");
-                const tokenResponse = await msalInstance.acquireTokenSilent({ ...loginRequest, account });
+                const tokenResponse = await msalInstance.acquireTokenSilent({...loginRequest, account });
                 console.log("Token acquired successfully for messages:", tokenResponse);
 
                 const response = await fetch(`https://graph.microsoft.com/v1.0/teams/${teamId}/channels/${channelId}/messages`, {
                     headers: {
-                        'Authorization': 'Bearer ' + tokenResponse.accessToken
+                        'Authorization': 'Bearer'+ tokenResponse.accessToken
                     }
                 });
                 console.log("Messages fetch response:", response);
@@ -229,25 +247,45 @@
 
         function displayMessages(messages) {
             console.log("Displaying messages...");
-            const messagesList = document.getElementById('messagesList');
-            messagesList.innerHTML = '';
+            const cardContainer = document.getElementById('card-container');
+            cardContainer.innerHTML = '';
             if (messages.length > 0) {
                 messages.forEach(message => {
-                    console.log("Message:", message.body.content);
-                    const li = document.createElement('li');
-                    li.textContent = message.body.content;
-                    messagesList.appendChild(li);
+                    const card = new AdaptiveCards.AdaptiveCard();
+                    card.parse({
+                        type: "AdaptiveCard",
+                        version: "1.0",
+                        body: [
+                            {
+                                "type": "TextBlock",
+                                "text": message.body.content,
+                                "wrap": true,
+                                "size": "Medium",
+                                "weight": "Bolder",
+                                "color": "Accent"
+                            },
+                            {
+                                "type": "TextBlock",
+                                "text": message.from.user.displayName,
+                                "wrap": true,
+                                "size": "Small",
+                                "color": "Dark"
+                            }
+                        ]
+                    });
+                    const cardElement = card.render();
+                    cardContainer.appendChild(cardElement);
                 });
             } else {
                 console.warn("No messages found in channel.");
-                messagesList.innerHTML = '<p>No messages found.</p>';
+                cardContainer.innerHTML = '<p>No messages found.</p>';
             }
             document.getElementById('messages').style.display = 'block';
         }
 
         document.getElementById('sendMessage').addEventListener('click', async function() {
             const messageContent = document.getElementById('messageInput').value;
-            if (!messageContent || !selectedTeamId || !selectedChannelId) {
+            if (!messageContent ||!selectedTeamId ||!selectedChannelId) {
                 alert('Please enter a message and select a team/channel.');
                 return;
             }
@@ -259,13 +297,13 @@
             const account = msalInstance.getActiveAccount();
             try {
                 console.log("Attempting to acquire token silently for sending message...");
-                const tokenResponse = await msalInstance.acquireTokenSilent({ ...loginRequest, account });
+                const tokenResponse = await msalInstance.acquireTokenSilent({...loginRequest, account });
                 console.log("Token acquired successfully for sending message:", tokenResponse);
 
                 const response = await fetch(`https://graph.microsoft.com/v1.0/teams/${teamId}/channels/${channelId}/messages`, {
                     method: 'POST',
                     headers: {
-                        'Authorization': 'Bearer ' + tokenResponse.accessToken,
+                        'Authorization': 'Bearer'+ tokenResponse.accessToken,
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
