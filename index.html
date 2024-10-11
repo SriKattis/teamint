@@ -9,10 +9,10 @@
         
         // Initialize the MSAL provider with Azure AD client ID and redirect authentication
         Providers.globalProvider = new Msal2Provider({
-            clientId: '9eac5713-ea50-4c18-bac7-5839a30f0101', // Replace with your Azure AD client ID
-            authority: 'https://login.microsoftonline.com/04a705d7-fbf2-41bc-bb46-19685d7a1db8', // Replace with your Azure AD tenant ID if needed
+            clientId: '[CLIENT-ID]', // Replace with your Azure AD client ID
+            authority: 'https://login.microsoftonline.com/[TENANT-ID]', // Replace with your Azure AD tenant ID if needed
             scopes: ["user.read", "calendars.read", "onlineMeetings.readwrite"], // Scopes required for Microsoft Graph
-            redirectUri: 'https://sdes11.github.io/teamint/' // Set the redirect URI to the current page
+            redirectUri: window.location.href // Set the redirect URI to the current page
         });
         
         registerMgtComponents();
@@ -37,23 +37,6 @@
         mgt-agenda {
             margin-top: 20px;
         }
-        .button-group {
-            margin-top: 20px;
-            display: flex;
-            gap: 10px;
-        }
-        button {
-            padding: 10px 20px;
-            font-size: 16px;
-            cursor: pointer;
-            border: none;
-            background-color: #0078d4;
-            color: white;
-            border-radius: 5px;
-        }
-        button:hover {
-            background-color: #005a9e;
-        }
     </style>
 </head>
 <body>
@@ -63,15 +46,8 @@
         <!-- Microsoft Login Button -->
         <mgt-login></mgt-login>
         
-        <!-- Agenda Component to show calendar events after login -->
-        <mgt-agenda id="agenda"></mgt-agenda>
-        
-        <!-- Button group to filter agenda items -->
-        <div class="button-group">
-            <button onclick="showAgenda('today')">Today</button>
-            <button onclick="showAgenda('week')">This Week</button>
-            <button onclick="showAgenda('month')">This Month</button>
-        </div>
+        <!-- Agenda Component to show calendar events for the next two weeks -->
+        <mgt-agenda group-by-day days="14"></mgt-agenda>
     </div>
 
     <script type="module">
@@ -92,36 +68,9 @@
             }
         });
 
-        // Function to filter agenda based on time frame
-        function showAgenda(timeframe) {
-            const agenda = document.getElementById('agenda');
-            const now = new Date();
-            let startDate, endDate;
-
-            if (timeframe === 'today') {
-                startDate = new Date(now.setHours(0, 0, 0, 0));
-                endDate = new Date(now);
-                endDate.setHours(23, 59, 59, 999);
-            } else if (timeframe === 'week') {
-                startDate = new Date(now);
-                startDate.setDate(startDate.getDate() - startDate.getDay());
-                startDate.setHours(0, 0, 0, 0);
-                endDate = new Date(startDate);
-                endDate.setDate(endDate.getDate() + 6);
-                endDate.setHours(23, 59, 59, 999);
-            } else if (timeframe === 'month') {
-                startDate = new Date(now.getFullYear(), now.getMonth(), 1);
-                endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-                startDate.setHours(0, 0, 0, 0);
-                endDate.setHours(23, 59, 59, 999);
-            }
-
-            agenda.dateRange = { start: startDate.toISOString(), end: endDate.toISOString() };
-        }
-
         // Adding Join Meeting button for agenda items
         document.addEventListener('DOMContentLoaded', () => {
-            const agenda = document.getElementById('agenda');
+            const agenda = document.querySelector('mgt-agenda');
             agenda.templateContexts = {
                 event: (event, context) => {
                     return {
