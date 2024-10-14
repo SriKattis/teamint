@@ -38,11 +38,26 @@
             display: flex;
             flex-direction: column;
             gap: 20px;
+            align-items: center;
+        }
+        .content-button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            border: none;
+            background-color: #0078d4;
+            color: white;
+            border-radius: 5px;
+        }
+        .content-button:hover {
+            background-color: #005a9e;
         }
         .main-content {
-            display: flex;
+            display: none;
             justify-content: space-between;
             gap: 20px;
+            width: 100%;
         }
         .left-section, .right-section {
             width: 48%;
@@ -82,8 +97,11 @@
             <mgt-login></mgt-login>
         </div>
 
+        <!-- Show Content Button (Initially Hidden) -->
+        <button id="show-content-button" class="content-button" style="display: none;">Show Agenda and Emails</button>
+
         <!-- Main Content: Agenda and Emails (Initially Hidden) -->
-        <div class="main-content" id="content-section" style="display: none;">
+        <div class="main-content" id="content-section">
             <!-- Left Section: Agenda -->
             <div class="left-section" id="agenda-section">
                 <h2>Your Agenda</h2>
@@ -125,14 +143,15 @@
                 const provider = Providers.globalProvider;
                 if (provider && provider.state === "SignedIn") {
                     console.log("User signed in successfully");
-                    // Show agenda and emails sections after signing in
-                    document.getElementById('content-section').style.display = 'flex';
+                    // Show profile button and content button after signing in
                     document.getElementById('profile-button').style.display = 'block';
+                    document.getElementById('show-content-button').style.display = 'block';
                     document.getElementById('login-section').style.display = 'none';
                 } else {
                     // Hide agenda and emails sections if not signed in
                     document.getElementById('content-section').style.display = 'none';
                     document.getElementById('profile-button').style.display = 'none';
+                    document.getElementById('show-content-button').style.display = 'none';
                     document.getElementById('login-section').style.display = 'block';
                 }
             });
@@ -141,9 +160,15 @@
             const loginComponent = document.querySelector('mgt-login');
             loginComponent.addEventListener('signed-in', () => {
                 console.log("User signed in successfully");
-                document.getElementById('content-section').style.display = 'flex';
                 document.getElementById('profile-button').style.display = 'block';
+                document.getElementById('show-content-button').style.display = 'block';
                 document.getElementById('login-section').style.display = 'none';
+            });
+
+            // Add event listener for Show Content Button
+            const showContentButton = document.getElementById('show-content-button');
+            showContentButton.addEventListener('click', () => {
+                document.getElementById('content-section').style.display = 'flex';
             });
         });
     </script>
