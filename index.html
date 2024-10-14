@@ -3,8 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Microsoft Sign-In Example</title>
+    <title>Microsoft Sign-In with Calendar and Mail</title>
     <!-- Load Microsoft Graph Toolkit from the latest CDN -->
+    <script type="module" src="https://unpkg.com/@microsoft/mgt@4/dist/es6/index.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -16,50 +17,66 @@
             color: #333;
         }
         .container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+            display: none; /* Initially hidden */
+            justify-content: space-between;
+            max-width: 1200px;
+            margin: 0 auto;
         }
-        #content {
-            display: none;
-        }
-        #calendar-events, #emails, #tasks {
-            width: 100%;
-            max-width: 600px;
-            margin-top: 20px;
+        .left, .right {
+            flex: 1;
+            margin: 10px;
             padding: 10px;
             background-color: white;
             border: 1px solid #ddd;
             border-radius: 5px;
             box-shadow: 0 0 10px rgba(0,0,0,0.1);
         }
+        .right {
+            max-width: 400px;
+        }
+        mgt-get {
+            display: block;
+        }
+        .login-container {
+            text-align: center;
+            margin-top: 50px;
+        }
     </style>
 </head>
 <body>
-    <div class="container">
-        <!-- Microsoft Login Button -->
-        <h1>Microsoft Sign-In</h1>
-        <mgt-login></mgt-login>
 
-        <!-- Display content only after user is logged in -->
-        <div id="content">
-            <!-- Calendar Events -->
+    <!-- Microsoft Login Button -->
+    <div class="login-container">
+        <h1>Sign In to See Your Calendar and Emails</h1>
+        <mgt-login></mgt-login> <!-- Sign-In Button -->
+    </div>
+
+    <div class="container">
+        <!-- Left Column: Calendar Agenda -->
+        <div class="left">
             <h2>Calendar Events</h2>
-            <div id="calendar-events">
-                <mgt-agenda group-by-day days="5"></mgt-agenda>
-            </div>
+            <mgt-agenda group-by-day days="5"></mgt-agenda>
+        </div>
         
-            <!-- Emails -->
-            <h2>Emails</h2>
-            <div id="emails">
-                <mgt-tasks data-source="mail"></mgt-tasks>
-            </div>
-        
-            <!-- Tasks -->
-            <h2>Tasks</h2>
-            <div id="tasks">
-                <mgt-tasks></mgt-tasks>
-            </div>
+        <!-- Right Column: Emails -->
+        <div class="right">
+            <h2>Your Emails</h2>
+            <!-- Use mgt-get to fetch emails from Microsoft Graph -->
+            <mgt-get resource="/me/messages" version="v1.0" scopes="mail.read">
+                <template>
+                    <div>
+                        <ul>
+                            <template data-for="value">
+                                <li>
+                                    <strong>{{value.subject}}</strong><br/>
+                                    From: {{value.from.emailAddress.name}}<br/>
+                                    <small>{{new Date(value.receivedDateTime).toLocaleString()}}</small>
+                                </li>
+                            </template>
+                        </ul>
+                    </div>
+                </template>
+            </mgt-get>
         </div>
     </div>
 
@@ -78,17 +95,20 @@
         // Register the MGT components for use
         registerMgtComponents();
 
-        // Handle the authentication state and show content if user is signed in
+        // Handle the authentication state and show content if the user is signed in
         Providers.globalProvider.onStateChanged(() => {
             const provider = Providers.globalProvider;
-            const contentDiv = document.getElementById('content');
+            const container = document.querySelector('.container');
+            const loginContainer = document.querySelector('.login-container');
 
             if (provider && provider.state === 'SignedIn') {
-                // User is signed in, show content
-                contentDiv.style.display = 'block';
+                // User is signed in, hide the login button and show the content
+                loginContainer.style.display = 'none';
+                container.style.display = 'flex';
             } else {
-                // User is not signed in, hide content
-                contentDiv.style.display = 'none';
+                // User is not signed in, show the login button
+                loginContainer.style.display = 'block';
+                container.style.display = 'none';
             }
         });
     </script>
