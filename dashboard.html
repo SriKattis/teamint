@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - Agenda & Tasks</title>
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="styles.css"> <!-- Reuse the existing styles.css -->
     <!-- Use concise MGT script -->
     <script type="module">
         import { registerMgtComponents, Providers, Msal2Provider } from 'https://unpkg.com/@microsoft/mgt@4';
@@ -35,24 +35,15 @@
         }
 
         .left-section {
-            flex: 1.5;
+            flex: 1.5; /* Make the calendar section slightly bigger */
         }
 
         .right-section {
-            flex: 1;
+            flex: 1; /* Tasks section */
         }
 
         h2 {
             color: #333;
-        }
-
-        .search-bar {
-            margin-bottom: 20px;
-            width: 100%;
-            padding: 10px;
-            font-size: 16px;
-            border-radius: 5px;
-            border: 1px solid #ddd;
         }
     </style>
 </head>
@@ -64,61 +55,23 @@
             <li><a href="index.html">Sign In</a></li>
             <li><a href="agenda.html">Agenda</a></li>
             <li><a href="mail-tasks.html">Tasks</a></li>
-            <li><a href="dashboard.html">Dashboard</a></li>
+            <li><a href="dashboard.html">Dashboard</a></li> <!-- New Dashboard Page -->
         </ul>
     </div>
 
-    <div class="content">
-        <!-- Search bar -->
-        <input type="text" id="search" class="search-bar" placeholder="Search tasks or events..." oninput="filterResults()">
+    <div class="dashboard-container">
+        <!-- Left Section: Agenda -->
+        <div class="left-section">
+            <h2>Agenda</h2>
+            <mgt-agenda group-by-day days="5"></mgt-agenda> <!-- Display calendar events -->
+        </div>
 
-        <div class="dashboard-container">
-            <!-- Left Section: Agenda (Calendar Events) -->
-            <div class="left-section">
-                <h2>Agenda</h2>
-                <mgt-agenda id="agenda" group-by-day days="5"></mgt-agenda>
-            </div>
-
-            <!-- Right Section: Tasks (Microsoft To Do) -->
-            <div class="right-section">
-                <h2>Tasks</h2>
-                <mgt-todo id="tasks"></mgt-todo>
-            </div>
+        <!-- Right Section: Tasks -->
+        <div class="right-section">
+            <h2>Tasks</h2>
+            <mgt-todo></mgt-todo> <!-- Display Microsoft To Do tasks -->
         </div>
     </div>
-
-    <script>
-        // Function to filter both agenda events and tasks based on search query
-        function filterResults() {
-            const searchTerm = document.getElementById('search').value.toLowerCase();
-
-            // Filter agenda events by subject
-            const agenda = document.querySelector('mgt-agenda');
-            agenda.templateContext = {
-                searchTerm: searchTerm
-            };
-
-            agenda.templateHandlers = {
-                event: (event) => {
-                    const subject = event.subject ? event.subject.toLowerCase() : '';
-                    return subject.includes(searchTerm);
-                }
-            };
-
-            // Filter tasks by title
-            const tasks = document.querySelector('mgt-todo');
-            tasks.templateContext = {
-                searchTerm: searchTerm
-            };
-
-            tasks.templateHandlers = {
-                task: (task) => {
-                    const title = task.title ? task.title.toLowerCase() : '';
-                    return title.includes(searchTerm);
-                }
-            };
-        }
-    </script>
 
 </body>
 </html>
