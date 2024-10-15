@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - Agenda & Tasks</title>
-    <link rel="stylesheet" href="styles.css"> <!-- Reuse the existing styles.css -->
+    <link rel="stylesheet" href="styles.css">
     <!-- Use concise MGT script -->
     <script type="module">
         import { registerMgtComponents, Providers, Msal2Provider } from 'https://unpkg.com/@microsoft/mgt@4';
@@ -35,11 +35,11 @@
         }
 
         .left-section {
-            flex: 1.5; /* Make the calendar section slightly bigger */
+            flex: 1.5;
         }
 
         .right-section {
-            flex: 1; /* Tasks section */
+            flex: 1;
         }
 
         h2 {
@@ -53,14 +53,6 @@
             font-size: 16px;
             border-radius: 5px;
             border: 1px solid #ddd;
-        }
-
-        ul {
-            list-style-type: none;
-        }
-
-        li {
-            margin-bottom: 10px;
         }
     </style>
 </head>
@@ -77,44 +69,20 @@
     </div>
 
     <div class="content">
+        <!-- Search bar -->
         <input type="text" id="search" class="search-bar" placeholder="Search tasks or events..." oninput="filterResults()">
 
         <div class="dashboard-container">
-            <!-- Left Section: Agenda -->
+            <!-- Left Section: Agenda (Calendar Events) -->
             <div class="left-section">
                 <h2>Agenda</h2>
-                <mgt-get resource="/me/events" version="v1.0" scopes="calendars.read" id="agenda-get">
-                    <template>
-                        <div id="agenda-results">
-                            <ul>
-                                <template data-for="value">
-                                    <li>
-                                        <strong>{{value.subject}}</strong><br>
-                                        {{new Date(value.start.dateTime).toLocaleString()}} - {{new Date(value.end.dateTime).toLocaleString()}}
-                                    </li>
-                                </template>
-                            </ul>
-                        </div>
-                    </template>
-                </mgt-get>
+                <mgt-agenda id="agenda" group-by-day days="5"></mgt-agenda>
             </div>
 
-            <!-- Right Section: Tasks -->
+            <!-- Right Section: Tasks (Microsoft To Do) -->
             <div class="right-section">
                 <h2>Tasks</h2>
-                <mgt-get resource="/me/todo/lists" version="v1.0" scopes="Tasks.Read" id="tasks-get">
-                    <template>
-                        <div id="tasks-results">
-                            <ul>
-                                <template data-for="value">
-                                    <li>
-                                        <strong>{{value.displayName}}</strong>
-                                    </li>
-                                </template>
-                            </ul>
-                        </div>
-                    </template>
-                </mgt-get>
+                <mgt-todo id="tasks"></mgt-todo>
             </div>
         </div>
     </div>
@@ -124,19 +92,31 @@
         function filterResults() {
             const searchTerm = document.getElementById('search').value.toLowerCase();
 
-            // Filter agenda events
-            const agendaItems = document.querySelectorAll('#agenda-results li');
-            agendaItems.forEach(item => {
-                const text = item.textContent.toLowerCase();
-                item.style.display = text.includes(searchTerm) ? '' : 'none';
-            });
+            // Filter agenda events by subject
+            const agenda = document.querySelector('mgt-agenda');
+            agenda.templateContext = {
+                searchTerm: searchTerm
+            };
 
-            // Filter tasks
-            const taskItems = document.querySelectorAll('#tasks-results li');
-            taskItems.forEach(item => {
-                const text = item.textContent.toLowerCase();
-                item.style.display = text.includes(searchTerm) ? '' : 'none';
-            });
+            agenda.templateHandlers = {
+                event: (event) => {
+                    const subject = event.subject ? event.subject.toLowerCase() : '';
+                    return subject.includes(searchTerm);
+                }
+            };
+
+            // Filter tasks by title
+            const tasks = document.querySelector('mgt-todo');
+            tasks.templateContext = {
+                searchTerm: searchTerm
+            };
+
+            tasks.templateHandlers = {
+                task: (task) => {
+                    const title = task.title ? task.title.toLowerCase() : '';
+                    return title.includes(searchTerm);
+                }
+            };
         }
     </script>
 
