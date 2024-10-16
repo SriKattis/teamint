@@ -58,6 +58,14 @@
             border: 1px solid #ccc;
             border-radius: 5px;
         }
+
+        .task-item, .event-item {
+            margin-bottom: 10px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color: #fff;
+        }
     </style>
 </head>
 <body>
@@ -72,67 +80,99 @@
         </ul>
     </div>
 
-    <div class="dashboard-container">
-        <div class="content">
-            <!-- Search bar -->
-            <div class="search-container">
-                <input type="text" id="search-bar" placeholder="Search">
-            </div>
+    <div class="content">
+        <!-- Search bar -->
+        <div class="search-container">
+            <input type="text" id="search-bar" placeholder="Search your agenda and tasks...">
         </div>
+    </div>
 
+    <div class="dashboard-container">
         <!-- Left Section: Agenda -->
         <div class="left-section">
             <h2>Agenda</h2>
-            <mgt-agenda group-by-day days="5"></mgt-agenda> <!-- Display calendar events -->
+            <div id="agenda-results"></div>
         </div>
 
         <!-- Right Section: Tasks -->
         <div class="right-section">
             <h2>Tasks</h2>
-            <mgt-todo></mgt-todo> <!-- Display Microsoft To Do tasks -->
+            <div id="task-results"></div>
         </div>
     </div>
 
     <script>
         const searchBar = document.getElementById('search-bar');
-        const agendaComponent = document.querySelector('mgt-agenda');
-        const todoComponent = document.querySelector('mgt-todo');
+        const agendaResults = document.getElementById('agenda-results');
+        const taskResults = document.getElementById('task-results');
 
-        // Fetch data from Microsoft Graph and update the components
-        async function fetchAndFilterData(searchTerm) {
+        // Fetch data from Microsoft Graph
+        async function fetchGraphData() {
             const provider = Providers.globalProvider;
-
             if (provider && provider.state === 'SignedIn') {
                 const graphClient = provider.graph.client;
 
                 try {
-                    // Fetch and filter calendar events
-                    const eventsResponse = await graphClient
-                        .api('/me/calendar/events')
-                        .filter(`contains(subject, '${searchTerm}')`)
-                        .get();
-
+                    // Fetch calendar events
+                    const eventsResponse = await graphClient.api('/me/calendar/events').get();
                     const events = eventsResponse.value;
-                    agendaComponent.events = events; // Update the agenda component with filtered events
 
-                    // Fetch and filter tasks
-                    const tasksResponse = await graphClient
-                        .api('/me/todo/lists')
-                        .filter(`contains(title, '${searchTerm}')`)
-                        .get();
-
+                    // Fetch tasks
+                    const tasksResponse = await graphClient.api('/me/todo/lists').expand('tasks').get();
                     const tasks = tasksResponse.value;
-                    todoComponent.data = tasks; // Update the todo component with filtered tasks
+
+                    return { events, tasks };
                 } catch (error) {
                     console.error('Error fetching data from Microsoft Graph:', error);
                 }
             }
+            return { events: [], tasks: [] };
         }
 
-        // Event listener to filter the tasks and agenda items as the user types
+        // Filter and display the data based on the search query
+        function filterAndDisplayData(data, searchTerm) {
+            const { events, tasks } = data;
+
+            // Filter agenda events
+            const filteredEvents = events.filter(event =>
+                event.subject.toLowerCase().includes(searchTerm)
+            );
+
+            // Filter tasks
+            const filteredTasks = tasks.flatMap(taskList =>
+                taskList.tasks.filter(task =>
+                    task.title.toLowerCase().includes(searchTerm)
+                )
+            );
+
+            // Display filtered events
+            agendaResults.innerHTML = filteredEvents.map(event =>
+                `<div class="event-item">
+                    <strong>${event.subject}</strong><br>
+                    <small>${new Date(event.start.dateTime).toLocaleString()} - ${new Date(event.end.dateTime).toLocaleString()}</small>
+                </div>`
+            ).join('');
+
+            // Display filtered tasks
+            taskResults.innerHTML = filteredTasks.map(task =>
+                `<div class="task-item">
+                    <strong>${task.title}</strong><br>
+                    <small>Due: ${task.dueDateTime ? new Date(task.dueDateTime.dateTime).toLocaleString() : 'No due date'}</small>
+                </div>`
+            ).join('');
+        }
+
+        // Initial fetch and render
+        let graphData = { events: [], tasks: [] };
+        fetchGraphData().then(data => {
+            graphData = data;
+            filterAndDisplayData(graphData, ''); // Initially show all data
+        });
+
+        // Event listener for search
         searchBar.addEventListener('input', function (e) {
             const searchTerm = e.target.value.toLowerCase();
-            fetchAndFilterData(searchTerm); // Fetch and filter the data based on the search term
+            filterAndDisplayData(graphData, searchTerm); // Filter and display data based on input
         });
     </script>
 </body>
