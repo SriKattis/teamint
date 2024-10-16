@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - Search Agenda & Tasks</title>
-    <link rel="stylesheet" href="styles.css"> <!-- Reuse the existing styles.css -->
+    <link rel="stylesheet" href="styles.css">
     <!-- Use concise MGT script -->
     <script type="module">
         import { registerMgtComponents, Providers, Msal2Provider } from 'https://unpkg.com/@microsoft/mgt@4';
@@ -76,7 +76,7 @@
         <div class="content">
             <!-- Search bar -->
             <div class="search-container">
-                <input type="text" id="search-bar" placeholder="Search your agenda and tasks...">
+                <input type="text" id="search-bar" placeholder="Search">
             </div>
         </div>
 
@@ -94,20 +94,45 @@
     </div>
 
     <script>
-        // Search functionality
         const searchBar = document.getElementById('search-bar');
         const agendaComponent = document.querySelector('mgt-agenda');
         const todoComponent = document.querySelector('mgt-todo');
 
+        // Fetch data from Microsoft Graph and update the components
+        async function fetchAndFilterData(searchTerm) {
+            const provider = Providers.globalProvider;
+
+            if (provider && provider.state === 'SignedIn') {
+                const graphClient = provider.graph.client;
+
+                try {
+                    // Fetch and filter calendar events
+                    const eventsResponse = await graphClient
+                        .api('/me/calendar/events')
+                        .filter(`contains(subject, '${searchTerm}')`)
+                        .get();
+
+                    const events = eventsResponse.value;
+                    agendaComponent.events = events; // Update the agenda component with filtered events
+
+                    // Fetch and filter tasks
+                    const tasksResponse = await graphClient
+                        .api('/me/todo/lists')
+                        .filter(`contains(title, '${searchTerm}')`)
+                        .get();
+
+                    const tasks = tasksResponse.value;
+                    todoComponent.data = tasks; // Update the todo component with filtered tasks
+                } catch (error) {
+                    console.error('Error fetching data from Microsoft Graph:', error);
+                }
+            }
+        }
+
         // Event listener to filter the tasks and agenda items as the user types
         searchBar.addEventListener('input', function (e) {
             const searchTerm = e.target.value.toLowerCase();
-
-            // Filter agenda events
-            agendaComponent.resource = `/me/calendar/events?$filter=startswith(subject, '${searchTerm}')`;
-
-            // Filter tasks
-            todoComponent.resource = `/me/todo/lists?$filter=startswith(title, '${searchTerm}')`;
+            fetchAndFilterData(searchTerm); // Fetch and filter the data based on the search term
         });
     </script>
 </body>
