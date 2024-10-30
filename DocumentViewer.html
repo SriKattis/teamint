@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tasks</title>
+    <title>Documents</title>
     <link rel="stylesheet" href="styles.css">
     <!-- Use concise MGT script -->
     <script type="module">
@@ -27,15 +27,56 @@
             <li><a href="agenda.html">Agenda</a></li>
             <li><a href="mail-tasks.html">Tasks</a></li>
             <li><a href="dashboard.html">Dashboard</a></li>
+            <li><a href="DocumentViewer.html">Documents</a></li>
         </ul>
     </div>
 
     <div class="content">
-        <h1>Your Tasks</h1>
-        <!-- Display Microsoft To Do tasks -->
-        <mgt-file-list
-  file-list-query="/me/drive/items/b!ZYLhxl-D-U-KECtAhrEwQ-RNNmzGUUdEhAqRjvdQlqDjWmBLf3l5Ra1B27XguzRg/children"
-></mgt-file-list>
+         <h1>SharePoint Files</h1>
+
+    <div id="fileListContainer"></div>
+
+    <script type="module">
+        async function getSharePointFiles() {
+            try {
+                // SharePoint site and folder information (Replace with your values)
+                const siteId = 90ddb134-9c7f-42ee-bf7e-7d644d8fc13c; // Get this from the site URL
+                const folderPath = '/Documents/Test'; // Example folder path
+
+                // Construct the Graph API endpoint URL
+                const endpoint = `/sites/${siteId}/drive/root:${folderPath}:/children`;
+
+                // Get the authenticated Graph client
+                const graphClient = Providers.globalProvider.getClient();
+
+                // Make the request to the Graph API
+                const response = await graphClient.api(endpoint).get();
+
+                // Process the response data
+                const files = response.value;
+
+                // Display the file list
+                const fileListContainer = document.getElementById('fileListContainer');
+                const fileList = document.createElement('ul');
+
+                files.forEach(file => {
+                    const listItem = document.createElement('li');
+                    listItem.textContent = `${file.name} (${file.size} bytes)`;
+                    fileList.appendChild(listItem);
+                });
+
+                fileListContainer.appendChild(fileList);
+
+            } catch (error) {
+                console.error('Error fetching files:', error);
+                // Handle the error appropriately (e.g., display an error message)
+            }
+        }
+
+        // Call the function to fetch and display the files
+        getSharePointFiles();
+    </script>
+
     </div>
 
 </body>
