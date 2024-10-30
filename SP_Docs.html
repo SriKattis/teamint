@@ -30,7 +30,82 @@ let children = await client.api('/sites/contentintelligence.sharepoint.com,c6e18
             <li><a href="dashboard.html">Dashboard</a></li>
         </ul>
     </div>
-
+<div>{
+    "type": "AdaptiveCard",
+    "body": [
+        {
+            "type": "Container",
+            "items": [
+                {
+                    "type": "TextBlock",
+                    "text": "Document 1.docx",
+                    "wrap": true,
+                    "size": "Large"
+                },
+                {
+                    "type": "ActionSet",
+                    "actions": [
+                        {
+                            "type": "Action.OpenUrl",
+                            "title": "Download Document",
+                            "role": "Link",
+                            "url": "https://contentintelligence.sharepoint.com/_layouts/15/Doc.aspx?sourcedoc=%7B2ADE498F-5C27-4656-908C-5AB3B7D47FDC%7D&file=Document%201.docx&action=default&mobileredirect=true",
+                            "style": "positive"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "Container",
+            "items": [
+                {
+                    "type": "TextBlock",
+                    "text": "Document 2.pdf",
+                    "wrap": true,
+                    "size": "Large"
+                },
+                {
+                    "type": "ActionSet",
+                    "actions": [
+                        {
+                            "type": "Action.OpenUrl",
+                            "title": "Download Document",
+                            "role": "Link",
+                            "url": "https://contentintelligence.sharepoint.com/RenRe_Documents/Document%202.pdf",
+                            "style": "positive"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "Container",
+            "items": [
+                {
+                    "type": "TextBlock",
+                    "text": "Document 3 - HLD.pptx",
+                    "wrap": true,
+                    "size": "Large"
+                },
+                {
+                    "type": "ActionSet",
+                    "actions": [
+                        {
+                            "type": "Action.OpenUrl",
+                            "title": "Download Document",
+                            "role": "Link",
+                            "url": "https://contentintelligence.sharepoint.com/_layouts/15/Doc.aspx?sourcedoc=%7BE26DAA5F-7137-47F3-9A04-F9969CB03D75%7D&file=Document%203%20-%20HLD.pptx&action=edit&mobileredirect=true",
+                            "style": "positive"
+                        }
+                    ]
+                }
+            ]
+        }
+    ],
+    "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+    "version": "1.6"
+}</div> 
     <div class="content">
         <h1>Your Calendar Events</h1>
         <mgt-agenda group-by-day days="5"></mgt-agenda> <!-- Agenda component -->
