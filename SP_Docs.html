@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agenda</title>
+    <link rel="stylesheet" href="styles.css">
+    <!-- Use concise MGT script -->
+    <script type="module">
+        const options = {
+	authProvider,
+};
+
+const client = Client.init(options);
+
+let children = await client.api('/sites/contentintelligence.sharepoint.com,c6e18265-835f-4ff9-8a10-2b4086b13043,6c364de4-51c6-4447-840a-918ef75096a0/drives/b!ZYLhxl-D-U-KECtAhrEwQ-RNNmzGUUdEhAqRjvdQlqDjWmBLf3l5Ra1B27XguzRg/root/children')
+	.select('id,name,webUrl,content.downloadUrl')
+	.get();
+    </script>
+</head>
+<body>
+
+    <div class="nav">
+        <h2>Navigation</h2>
+        <ul>
+            
+            <li><a href="index.html">Sign In</a></li>
+            <li><a href="agenda.html">Agendaa</a></li>
+            <li><a href="mail-tasks.html">Mail and Tasks</a></li>
+            <li><a href="dashboard.html">Dashboard</a></li>
+        </ul>
+    </div>
+
+    <div class="content">
+        <h1>Your Calendar Events</h1>
+        <mgt-agenda group-by-day days="5"></mgt-agenda> <!-- Agenda component -->
+    </div>
+
+</body>
+</html>
