@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard - Agenda & Tasks</title>
+    <title>Dashboard - Agenda, Tasks & Power BI</title>
     <link rel="stylesheet" href="styles.css"> <!-- Reuse the existing styles.css -->
     <!-- Use concise MGT script -->
     <script type="module">
@@ -42,6 +42,16 @@
             flex: 1; /* Tasks section */
         }
 
+        .powerbi-section {
+            margin: 10px;
+            padding: 20px;
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            text-align: center;
+            width: 100%;
+        }
+
         h2 {
             color: #333;
         }
@@ -56,7 +66,7 @@
             <li><a href="agenda.html">Agenda</a></li>
             <li><a href="mail-tasks.html">Tasks</a></li>
             <li><a href="dashboard.html">Dashboard</a></li> <!-- New Dashboard Page -->
-            <li><a href="SP_Docs.html">SharePoint Documents</a></li>
+            <li><a href="dashboard.html">Dashboard</a></li>
         </ul>
     </div>
 
@@ -72,6 +82,15 @@
             <h2>Tasks</h2>
             <mgt-todo></mgt-todo> <!-- Display Microsoft To Do tasks -->
         </div>
+    </div>
+
+    <!-- Power BI Section -->
+    <div class="powerbi-section">
+        <h2>Power BI Report</h2>
+        <iframe title="RenRe-Test" width="1140" height="541.25" 
+            src="https://app.powerbi.com/reportEmbed?reportId=ed8d1c1f-4a88-49bb-bbce-e5bc9420f695&autoAuth=true&ctid=04a705d7-fbf2-41bc-bb46-19685d7a1db8" 
+            frameborder="0" allowFullScreen="true">
+        </iframe>
     </div>
 
 </body>
